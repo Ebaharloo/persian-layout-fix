@@ -23,7 +23,7 @@ const englishToPersianMap = {
   'i': 'ه', 'o': 'خ', 'p': 'ح', '[': 'ج', ']': 'چ', 'a': 'ش', 's': 'س',
   'd': 'ی', 'f': 'ب', 'g': 'ل', 'h': 'ا', 'j': 'ت', 'k': 'ن', 'l': 'م',
   ';': 'ک', "'": 'گ', 'z': 'ظ', 'x': 'ط', 'c': 'ز', 'v': 'ر', 'b': 'ذ',
-  'n': 'د', 'm': 'پ', ',': 'و', '.': '.', '/': '/', ' ': ' ',
+  'n': 'د', 'm': 'ئ', ',': 'و', '.': '.', '/': '/', ' ': ' ',
   
   // Uppercase letters
   'Q': 'َ', 'W': 'ً', 'E': 'ُ', 'R': 'ٌ', 'T': 'لإ', 'Y': 'إ', 'U': '‘',
@@ -240,10 +240,16 @@ function autoConvert() {
 }
 
 // Listen for messages from background script
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "autoConvert") {
-    autoConvert();
+chrome.runtime.onMessage.addListener((request) => {
+  switch (request.action) {
+    case "autoConvert":
+      autoConvert();
+      break;
+      // You can add more cases here in the future
+    default:
+      console.log('Unknown action:', request.action);
   }
+
 fontStyle.textContent = `
   @font-face {
     font-family: 'Noto Sans Arabic';

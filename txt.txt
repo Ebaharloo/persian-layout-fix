@@ -1,0 +1,42 @@
+# Professional quality conversion
+p2e.png \
+  -resize 16x16 -filter Lanczos -unsharp 0.5x0.5+0.7+0.02 \
+  -define png:compression-level=0 ./icon-16.png
+
+p2e.png \
+  -resize 32x32 -filter Lanczos -unsharp 0.3x0.3+0.5+0.01 \
+  -define png:compression-level=0 ./icon-32.png
+
+p2e.png \
+  -resize 48x48 -filter Lanczos \
+  -define png:compression-level=0 ./icon-48.png
+
+p2e.png \
+  -resize 128x128 \
+  -define png:compression-level=0 ./icon-128.png
+
+
+  #!/bin/bash
+  # save as check-icons.sh
+
+  echo "Checking icon quality and dimensions..."
+
+  sizes=(16 32 48 128)
+  for size in "${sizes[@]}"; do
+      file="./icon-${size}.png"
+      if [ -f "$file" ]; then
+          dimensions=$(identify -format "%wx%h" "$file" 2>/dev/null)
+          filesize=$(du -h "$file" | cut -f1)
+          echo "✅ $file: $dimensions ($filesize)"
+      else
+          echo "❌ $file: Missing"
+      fi
+  done
+  
+  
+  convert p2e.png -resize 16x16 -filter Lanczos -unsharp 0.5x0.5+0.7+0.02 ./icon-16.png
+  convert p2e.png -resize 32x32 -filter Lanczos -unsharp 0.3x0.3+0.5+0.01 ./icon-32.png
+  convert p2e.png -resize 48x48 -filter Lanczos ./icon-48.png
+  convert p2e.png -resize 128x128 ./icon-128.png
+  
+  echo "High-quality icons created! 🎯"
