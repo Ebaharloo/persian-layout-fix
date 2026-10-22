@@ -18,11 +18,11 @@ Tired of typing Persian with English keyboard layout? This intelligent extension
 - کارکرد با متن‌های راست‌چین و چپ‌چین
 
 ### ⚡ Instant Conversion / تبدیل فوری
-- Select text and press `Alt+Ctrl+P`
+- Select text and press `Ctrl+Alt+P`
 - Or click the extension icon
 - Text is replaced instantly in any input field or webpage
 
-- متن را انتخاب کرده و `Alt+Ctrl+P` بزنید
+- متن را انتخاب کرده و `Ctrl+Alt+P` بزنید
 - یا روی آیکون افزونه کلیک کنید
 - متن بلافاصله در هر فیلد یا صفحه‌ای جایگزین می‌شود
 
@@ -48,12 +48,12 @@ Tired of typing Persian with English keyboard layout? This intelligent extension
 
 **English:**
 1. **Select text** anywhere (search bars, forms, web pages)
-2. **Press Alt+Shift+P** or click the extension icon
+2. **Press Ctrl+Alt+P** or click the extension icon
 3. **Watch magic happen** - text converts automatically!
 
 **فارسی:**
 1. **متن را انتخاب کنید** در هر جایی (نوار جستجو، فرم‌ها، صفحات وب)
-2. **Alt+Shift+P** بزنید یا روی آیکون افزونه کلیک کنید
+2. **Ctrl+Alt+P** بزنید یا روی آیکون افزونه کلیک کنید
 3. **معجزه را ببینید** - متن به طور خودکار تبدیل می‌شود!
 
 ## 💡 Perfect For / مناسب برای:
@@ -67,6 +67,45 @@ Tired of typing Persian with English keyboard layout? This intelligent extension
 - کاربران دو زبانه که بین زبان‌ها جابجا می‌شوند
 - اصلاح متن‌های تایپ شده اشتباه
 - دانشجویان و حرفه‌ای‌هایی که با هر دو زبان کار می‌کنند
+
+## ⌨️ Keyboard coverage / پوشش صفحه‌کلید
+
+Mapping follows the **Windows `fa-IR` layout (XKB `ir(winkeys)`)** — the layout
+almost every Iranian machine has, not the theoretical ISIRI order:
+
+| row | unshifted | shifted |
+|---|---|---|
+| Q | ض ص ث ق ف غ ع ه خ ح ج چ \ | ً ٌ ٍ ﷼ ، ؛ , ] [ \ } { |
+| A | ش س ی ب ل ا ت ن م ک گ | َ ُ ِ ّ ۀ آ ـ « » |
+| Z | ظ ط ز ر ذ د ئ و | ة ي ژ ؤ إ أ ء ؟ |
+| digits | 0-9 | ! @ # $ % ^ & * ( ) |
+| symbols | \` ÷ ~ × | |
+
+Reverse conversion also accepts Arabic spellings Persian keys can't produce
+(`ك` `ي` `ى` `ة` `أ` `إ` `ؤ` `ء`) and both Persian (`۰-۹`) and Arabic-Indic
+(`٠-٩`) digits.
+
+## 🧪 Tests / تست
+
+```bash
+node test.js   # 40 assertions over mapping.js
+```
+
+## 📝 Changelog
+
+### 1.1.0
+- Fixed crash: `fontStyle` was undefined inside the message listener (ReferenceError on every conversion)
+- Rebuilt both mapping tables from the real Windows fa-IR layout; added missing `پ ژ چ گ ۀ آ ة أ إ ؤ ئ ء ، ؛ ؟ « » ÷ ×` and all shift-level letters
+- Fixed wrong shift-level pairs (`Shift+Q` was fatha, now fathatan; `Shift+F` was `[`, now shadda; `Shift+K/L` now `«»`)
+- Reverse conversion handles Arabic spellings and Persian/Arabic-Indic digits
+- Digits no longer converted to `۱۲۳` (the Windows layout types ASCII digits) — numbers, phones, URLs stay intact
+- Detection rewritten: dominant script decides direction, dead `commonPatterns` branch removed
+- Replacement uses `execCommand('insertText')` so React/Vue/ProseMirror inputs update and undo works; `setRangeText` fallback for inputs
+- Font/notification CSS injected once at load instead of on every message
+- Notifications: truncated preview, page-independent `z-index`, RTL
+- `background.js`: handles missing tabs / missing content script, works with `browser` or `chrome`
+- Content script runs in all frames; shortcut documented consistently as `Ctrl+Alt+P`
+- Layout tables split into `mapping.js` with `test.js` assertions
 
 ## 🔧 Technical Details / جزئیات فنی:
 
@@ -82,18 +121,21 @@ Tired of typing Persian with English keyboard layout? This intelligent extension
 
 ## 📝 Examples / مثال‌ها:
 
-**English to Persian:**
+**English to Persian / انگلیسی به فارسی:**
 - `sghl` → `سلام`
-- `p,f` → `من`
-- `isjl` → `هستم`
-- `ovd` → `خوب`
-- `jjhddn lnjv; fvhd Hglhk nv hdvhk` → `تتایید مدارک برای ألمان در ایران`
+- `o,f` → `خوب`
+- `hdvhk` → `ایران`
+- `ld\u200co,hil` → `می‌خواهم`
+- `sghl o,f hk;?` → `سلام خوب انک؟`
 
-**فارسی به انگلیسی:**
+**Persian to English / فارسی به انگلیسی:**
 - `سلام` → `sghl`
-- `من` → `p,f`
-- `خوب` → `ovd`
+- `خوب` → `o,f`
 - `ایران` → `hdvhk`
+- `می‌خواهم` → `ld\u200co,hil`
+- `۱۲۳` → `123`
+
+ASCII digits, `-`, `=`, `;`, `:`, `/`, `.`, `()`, `[]`, `{}` are shared by both layouts, so numbers, URLs, emails and code survive conversion untouched.
 
 خداحافظ سردردهای تغییر صفحه‌کلید! 🎉
 Say goodbye to layout switching headaches! 🎉
