@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Persian Layout Fix",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Fix text typed with the wrong Persian/English keyboard layout - 100% local, no data collection",
   "action": {
     "default_title": "Convert Persian/English Text (Ctrl+Shift+Q)",
@@ -51,5 +51,8 @@
       ]
     }
   ],
-  "minimum_chrome_version": "102"
+  "minimum_chrome_version": "102",
+  "permissions": [
+    "contextMenus"
+  ]
 }

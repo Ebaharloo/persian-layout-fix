@@ -1,23 +1,23 @@
 {
   "manifest_version": 2,
   "name": "Persian Layout Fix",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Fix text typed with the wrong Persian/English keyboard layout - 100% local, no data collection",
-
   "browser_specific_settings": {
     "gecko": {
       "id": "persian-layout-fix@yourdomain.com",
       "strict_min_version": "142.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     }
   },
-
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "contextMenus"
   ],
-
   "browser_action": {
     "default_title": "Convert Persian/English Text (Ctrl+Alt+P)",
     "default_icon": {
@@ -26,12 +26,12 @@
       "48": "icons/icon-48.png"
     }
   },
-
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "background.js"
+    ],
     "persistent": false
   },
-
   "commands": {
     "auto-convert": {
       "suggested_key": {
@@ -40,22 +40,26 @@
       "description": "Convert selected text"
     }
   },
-
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["mapping.js", "content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "mapping.js",
+        "content.js"
+      ],
       "run_at": "document_idle",
       "all_frames": true
     }
   ],
-
-  "web_accessible_resources": ["fonts/*"]
+  "web_accessible_resources": [
+    "fonts/*"
+  ]
 }

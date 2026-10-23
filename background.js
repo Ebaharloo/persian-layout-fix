@@ -11,6 +11,27 @@ function sendToTab(tab) {
   });
 }
 
+const MENU_ID = 'convert-selection';
+
+function createMenu() {
+  api.contextMenus.create({
+    id: MENU_ID,
+    title: 'Convert Persian ⇄ English layout',
+    contexts: ['selection', 'editable'],
+  }, () => {
+    // Duplicate id on reload/restart is expected; reading lastError silences it.
+    void api.runtime.lastError;
+  });
+}
+
+api.runtime.onInstalled.addListener(createMenu);
+api.runtime.onStartup.addListener(createMenu);
+createMenu();
+
+api.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === MENU_ID) sendToTab(tab);
+});
+
 api.commands.onCommand.addListener((command) => {
   if (command !== 'auto-convert') return;
   api.tabs.query({ active: true, currentWindow: true }, (tabs) => sendToTab(tabs && tabs[0]));

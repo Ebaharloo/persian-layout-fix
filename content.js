@@ -37,6 +37,13 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
+  const isTopFrame = window === window.top;
+
+  // Messages reach every frame, so error toasts come from the top frame only.
+  function errorNotice(message) {
+    if (isTopFrame) showNotification(message, true);
+  }
+
   function preview(text) {
     const clean = text.replace(/\s+/g, ' ').trim();
     return clean.length > MAX_PREVIEW ? clean.slice(0, MAX_PREVIEW) + '…' : clean;
@@ -100,25 +107,25 @@
 
     if (isTextField(el) || isTextArea(el)) {
       if (el.selectionStart === el.selectionEnd) {
-        return showNotification('❌ لطفاً متنی را انتخاب کنید', true);
+        return errorNotice('❌ لطفاً متنی را انتخاب کنید');
       }
       selected = el.value.slice(el.selectionStart, el.selectionEnd);
     } else {
       const selection = window.getSelection();
       selected = selection ? selection.toString() : '';
       if (!selected.trim()) {
-        return showNotification('❌ لطفاً متنی را انتخاب کنید', true);
+        return errorNotice('❌ لطفاً متنی را انتخاب کنید');
       }
     }
 
     const direction = detectDirection(selected);
     if (!direction) {
-      return showNotification('❌ نوع متن قابل تشخیص نیست', true);
+      return errorNotice('❌ نوع متن قابل تشخیص نیست');
     }
 
     const converted = direction === 'fa2en' ? faToEn(selected) : enToFa(selected);
     if (!replaceSelection(converted)) {
-      return showNotification('❌ جایگزینی متن ناموفق بود', true);
+      return errorNotice('❌ جایگزینی متن ناموفق بود');
     }
 
     const label = direction === 'fa2en' ? '🔠 فارسی ← انگلیسی' : '🔤 انگلیسی ← فارسی';

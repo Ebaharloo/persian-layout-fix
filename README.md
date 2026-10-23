@@ -19,6 +19,7 @@ Tired of typing Persian with English keyboard layout? This intelligent extension
 
 ### ⚡ Instant Conversion / تبدیل فوری
 - Select text and press `Ctrl+Alt+P`
+- Or right-click the selection → **Convert Persian ⇄ English layout**
 - Or click the extension icon
 - Text is replaced instantly in any input field or webpage
 
@@ -59,8 +60,8 @@ Chrome does not accept `Ctrl+Alt+P` as a suggested shortcut, so the Chrome build
 
 ```bash
 ./scripts/build.sh
-# dist/persian-layout-fix-firefox-1.1.0.zip  (MV2, manifest.json)
-# dist/persian-layout-fix-chrome-1.1.0.zip   (MV3, manifest.chrome.json)
+# dist/persian-layout-fix-firefox-<version>.zip  (MV2, manifest.json)
+# dist/persian-layout-fix-chrome-<version>.zip   (MV3, manifest.chrome.json)
 ```
 
 Both packages are built from the same `mapping.js` / `content.js` / `background.js`;
@@ -115,6 +116,11 @@ node test.js   # 40 assertions over mapping.js
 ```
 
 ## 📝 Changelog
+
+### 1.2.0
+- Right-click context menu **Convert Persian ⇄ English layout** (`contexts: ["selection", "editable"]`) — works on page text, inputs, textareas and contenteditable fields without knowing the shortcut
+- Error toasts only from the top frame: the message reaches every frame (`all_frames`), sub-frames no longer draw duplicate notifications
+- Both stores built from the same sources by `scripts/build.sh`; feature changes are written once
 
 ### 1.1.0
 - Fixed crash: `fontStyle` was undefined inside the message listener (ReferenceError on every conversion)
