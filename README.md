@@ -44,6 +44,29 @@ Tired of typing Persian with English keyboard layout? This intelligent extension
 - پشتیبانی از فیلدهای متنی، textarea و محتوای قابل ویرایش
 - سازگار با تمام وبسایت‌های مدرن
 
+## 📦 Install / نصب
+
+| browser | how | shortcut |
+|---|---|---|
+| Firefox | [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/persian-layout-fix/) or `about:debugging` → Load Temporary Add-on → `manifest.json` | `Ctrl+Alt+P` |
+| Chrome / Edge / Brave / Opera | load the unpacked `dist/chrome` folder at `chrome://extensions` (Developer mode → Load unpacked) or install from the store | `Ctrl+Shift+Q` |
+
+Chrome does not accept `Ctrl+Alt+P` as a suggested shortcut, so the Chrome build ships
+`Ctrl+Shift+Q`. Rebind either one at `chrome://extensions/shortcuts` (Chrome) or
+`about:addons` → gear → Manage Extension Shortcuts (Firefox).
+
+## 🛠 Build / ساخت
+
+```bash
+./scripts/build.sh
+# dist/persian-layout-fix-firefox-1.1.0.zip  (MV2, manifest.json)
+# dist/persian-layout-fix-chrome-1.1.0.zip   (MV3, manifest.chrome.json)
+```
+
+Both packages are built from the same `mapping.js` / `content.js` / `background.js`;
+only the manifest differs. `background.js` picks `browser` or `chrome`, and
+`action` or `browserAction`, so one file serves MV2 and MV3.
+
 ## 🚀 How to Use / روش استفاده:
 
 **English:**
@@ -104,8 +127,9 @@ node test.js   # 40 assertions over mapping.js
 - Font/notification CSS injected once at load instead of on every message
 - Notifications: truncated preview, page-independent `z-index`, RTL
 - `background.js`: handles missing tabs / missing content script, works with `browser` or `chrome`
-- Content script runs in all frames; shortcut documented consistently as `Ctrl+Alt+P`
+- Content script runs in all frames; shortcut documented per browser (`Ctrl+Alt+P` Firefox, `Ctrl+Shift+Q` Chrome)
 - Layout tables split into `mapping.js` with `test.js` assertions
+- Chrome / Edge build: MV3 manifest, service-worker background, `web_accessible_resources` for the notification font, one `scripts/build.sh` for both stores
 
 ## 🔧 Technical Details / جزئیات فنی:
 

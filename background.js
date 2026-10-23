@@ -1,5 +1,7 @@
 // Background: forwards the shortcut / toolbar click to the active tab.
+// Works in Chrome/Edge MV3 (action + service worker) and Firefox MV2 (browser_action).
 const api = globalThis.browser || globalThis.chrome;
+const action = api.action || api.browserAction;
 
 function sendToTab(tab) {
   if (!tab || tab.id == null) return;
@@ -14,4 +16,4 @@ api.commands.onCommand.addListener((command) => {
   api.tabs.query({ active: true, currentWindow: true }, (tabs) => sendToTab(tabs && tabs[0]));
 });
 
-api.browserAction.onClicked.addListener(sendToTab);
+action.onClicked.addListener(sendToTab);
