@@ -67,13 +67,16 @@ Same conversion, same `mapping.js`, usable in **any** app — Telegram, Kate, Li
 Then: right-click panel → **Add Widgets** → *Persian Layout Fix*, and bind a shortcut:
 System Settings → Keyboard → Shortcuts → **Add → Command or Script** → `/home/abraham/bin/plf-fix` → e.g. `Ctrl+Alt+P`.
 
-How it works: select text in any app → click the panel icon or press the shortcut → the script
-`scripts/plf-fix` sends Ctrl+C, converts the clipboard with `scripts/cli.js` (same tables as the
-extension), then sends Ctrl+V, and shows a notification. `plf-fix --clip` converts the clipboard only.
+How it works: select text in any app → click the panel icon or press the shortcut →
+`Ctrl+C` grabs the selection (Wayland has no API to read it directly), `scripts/cli.js` converts with
+the same tables as the extension, `wtype` **types the result over the selection**, and your previous
+clipboard is put back — no paste step, no clipboard loss. `plf-fix --clip` converts the clipboard only.
+Every run is logged to `~/.local/state/plf-fix.log` (`ok`/`fail` + text in/out).
 
-Requires: `node`, `wl-clipboard` (`wl-copy`/`wl-paste`), `ydotool` + running `ydotoold` (uinput access).
-Limits: terminals need `Ctrl+Shift+C/V` (the script sends `Ctrl+C` = SIGINT), and apps that
-reject synthetic key events can only use `--clip` plus manual paste.
+Requires: `node`, `wl-clipboard`, `ydotool` + running `ydotoold` (grabbing the selection), `wtype`
+(typing it back; falls back to `Ctrl+V` when missing).
+Limits: terminals need `Ctrl+Shift+C` (the script sends `Ctrl+C` = SIGINT); apps that ignore
+synthetic keys only work with `--clip` + manual paste.
 
 ## 🛠 Build / ساخت
 

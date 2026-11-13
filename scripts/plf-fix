@@ -16,7 +16,8 @@ log() {
 if [ "${1:-}" = "--clip" ]; then
   text=$(wl-paste --no-newline 2>/dev/null) || { notify "❌ clipboard empty"; log "fail: clipboard empty"; exit 1; }
 else
-  before=$(wl-paste --no-newline 2>/dev/null || true)
+  original=$(wl-paste --no-newline 2>/dev/null || true)
+  before=$original
   ydotool key --delay 30 ctrl+c
   for _ in $(seq 20); do  # wait for the app to fill the clipboard
     sleep 0.03
@@ -32,8 +33,15 @@ converted=$(printf '%s' "$text" | node "$CLI") || { notify "❌ cant detect lang
 printf '%s' "$converted" | wl-copy
 
 if [ "${1:-}" != "--clip" ]; then
-  sleep 0.05
-  ydotool key --delay 30 ctrl+v
+  # Type over the selection instead of pasting, then give the user their clipboard back.
+  if command -v wtype >/dev/null; then
+    sleep 0.05
+    wtype -- "$converted"   # default delay 0; "--" so text is never parsed as a flag
+    if [ -n "${original:-}" ]; then printf '%s' "$original" | wl-copy; else wl-copy --clear; fi
+  else
+    sleep 0.05
+    ydotool key --delay 30 ctrl+v   # shortcut: clipboard left holding the converted text when wtype is missing
+  fi
 fi
 
 short=$(printf '%s' "$converted" | head -c 60)
