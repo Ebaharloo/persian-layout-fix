@@ -1,69 +1,78 @@
 #!/usr/bin/env bash
 # System-wide Persian/English layout fix on Wayland (KDE).
-# Select text in any app, press the global shortcut: text is converted in place.
-# Usage: plf-fix           convert the current selection (Ctrl+C / convert / Ctrl+V)
-#        plf-fix --clip    convert the clipboard only, no key injection
+# Select text in any app, press the shortcut / click the widget: it is retyped in the
+# right layout. No copy step - the text comes from the Wayland PRIMARY selection.
+# Usage: plf-fix           fix the current selection
+#        plf-fix --copy    apps that do not publish a primary selection (uses Ctrl+C)
+#        plf-fix --clip    convert the clipboard only (no typing)
 set -uo pipefail
 
-CLI="$(dirname "$(readlink -f "$0")")/cli.js"
-LOG="${XDG_STATE_HOME:-$HOME/.local/state}/plf-fix.log"
+DIR="$(dirname "$(readlink -f "$0")")"
+CLI="$DIR/cli.js"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}"
+LOG="$STATE_DIR/plf-fix.log"
+LAST="$STATE_DIR/plf-fix.last"
+FA_IM=keyboard-ir-winkeys
+EN_IM=keyboard-us
+
 notify() { notify-send -a "Persian Layout Fix" "Persian Layout Fix" "$1"; }
 log() {
-  mkdir -p "$(dirname "$LOG")"
+  mkdir -p "$STATE_DIR"
   printf '%s\t%s\n' "$(date '+%F %T')" "$1" >> "$LOG"
 }
+fail() { notify "❌ $1"; log "fail: $1${2:+ | in=$2}"; exit 1; }
 
-if [ "${1:-}" = "--clip" ]; then
-  text=$(wl-paste --no-newline 2>/dev/null) || { notify "❌ clipboard empty"; log "fail: clipboard empty"; exit 1; }
-else
-  original=$(wl-paste --no-newline 2>/dev/null || true)
-  before=$original
-  ydotool key --delay 30 ctrl+c
-  for _ in $(seq 20); do  # wait for the app to fill the clipboard
+mode=${1:-}
+
+if [ "$mode" = "--clip" ]; then
+  text=$(wl-paste --no-newline 2>/dev/null) || fail "clipboard empty"
+elif [ "$mode" = "--copy" ]; then
+  before=$(wl-paste --no-newline 2>/dev/null || true)
+  ydotool key ctrl+c
+  text=""
+  for _ in $(seq 20); do
     sleep 0.03
     text=$(wl-paste --no-newline 2>/dev/null || true)
-    [ "$text" != "$before" ] && break
+    [ -n "$text" ] && [ "$text" != "$before" ] && break
+    text=""
   done
-  [ -n "${text:-}" ] || { notify "❌ select some text first"; log "fail: no selection"; exit 1; }
+  [ -n "$text" ] || fail "no selection (app did not copy)"
+else
+  text=$(wl-paste --primary --no-newline 2>/dev/null || true)
+  [ -n "${text//[[:space:]]/}" ] || fail "nothing selected"
+  # PRIMARY keeps the previous value, so the same text twice means nothing new was selected.
+  [ "$text" = "$(cat "$LAST" 2>/dev/null || true)" ] && fail "already fixed this one - select the new text"
 fi
 
-converted=$(printf '%s' "$text" | node "$CLI") || { notify "❌ cant detect language"; log "fail: no direction | in=$text"; exit 1; }
-[ "$converted" = "$text" ] && { notify "❌ nothing to convert"; log "fail: unchanged | in=$text"; exit 1; }
+converted=$(printf '%s' "$text" | node "$CLI") || fail "cant detect language" "$text"
+[ "$converted" = "$text" ] && fail "nothing to convert" "$text"
 
-printf '%s' "$converted" | wl-copy
-
-if [ "${1:-}" != "--clip" ]; then
-  # Retype by keystrokes over the still-active selection: switch to the layout that
-  # produces the wanted characters, type, switch back. KWin has no virtual-keyboard
-  # protocol (wtype fails), and ydotool can only send keycodes, not Unicode.
-  spec=$(printf '%s' "$text" | node "$CLI" --keys) || spec=""
-  target=${spec%%$'\t'*}
-  keys=${spec#*$'\t'}
-  case "$target" in
-    fa) im=keyboard-ir-winkeys ;;
-    en) im=keyboard-us ;;
-    *)  im="" ;;
-  esac
-
-  if [ -n "$im" ] && command -v ydotool >/dev/null && command -v fcitx5-remote >/dev/null; then
-    prev_im=$(fcitx5-remote -n)
-    fcitx5-remote -s "$im"
-    sleep 0.15                       # let the layout switch apply before keystrokes
-    if ! ydotool type -d 20 -- "$keys"; then
-      fcitx5-remote -s "$prev_im"          # never leave the user on the wrong layout
-      log "fail: typing failed | in=$text | clipboard kept"
-      notify "❌ typing failed - text is in your clipboard"
-      exit 1
-    fi
-    sleep 0.05
-    fcitx5-remote -s "$prev_im"
-    if [ -n "${original:-}" ]; then printf '%s' "$original" | wl-copy; else wl-copy --clear; fi
-  else
-    sleep 0.05
-    ydotool key --delay 30 ctrl+v   # shortcut: clipboard left holding the converted text when keys path unavailable
-  fi
+if [ "$mode" = "--clip" ]; then
+  printf '%s' "$converted" | wl-copy
+  log "ok(clip) | in=$text | out=$converted"
+  notify "✅ $converted"
+  exit 0
 fi
 
-short=$(printf '%s' "$converted" | head -c 60)
-log "ok | in=$text | out=$converted"
-notify "✅ $short"
+spec=$(printf '%s' "$text" | node "$CLI" --keys) || fail "cant build keystrokes" "$text"
+target=${spec%%$'\t'*}
+keys=${spec#*$'\t'}
+case "$target" in
+  fa) im=$FA_IM ;;
+  en) im=$EN_IM ;;
+  *)  fail "no target layout" "$text" ;;
+esac
+
+prev_im=$(fcitx5-remote -n 2>/dev/null || echo "$EN_IM")
+fcitx5-remote -s "$im" || fail "cant switch input method" "$text"
+sleep 0.15                                   # let fcitx5 apply the layout before typing
+if ! ydotool type -d 20 -- "$keys"; then
+  fcitx5-remote -s "$prev_im"                 # never leave the user on the wrong layout
+  fail "typing failed" "$text"
+fi
+sleep 0.05
+fcitx5-remote -s "$prev_im"
+
+printf '%s' "$text" > "$LAST"
+log "ok | in=$text | out=$converted | typed=$keys ($target)"
+notify "✅ $converted"
