@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# System-wide Persian/English layout fix on Wayland (KDE).
+# Select text in any app, press the global shortcut: text is converted in place.
+# Usage: plf-fix           convert the current selection (Ctrl+C / convert / Ctrl+V)
+#        plf-fix --clip    convert the clipboard only, no key injection
+set -uo pipefail
+
+CLI="$(dirname "$(readlink -f "$0")")/cli.js"
+notify() { notify-send -a "Persian Layout Fix" "Persian Layout Fix" "$1"; }
+
+if [ "${1:-}" = "--clip" ]; then
+  text=$(wl-paste --no-newline 2>/dev/null) || { notify "❌ clipboard empty"; exit 1; }
+else
+  before=$(wl-paste --no-newline 2>/dev/null || true)
+  ydotool key --delay 30 ctrl+c
+  for _ in $(seq 20); do  # wait for the app to fill the clipboard
+    sleep 0.03
+    text=$(wl-paste --no-newline 2>/dev/null || true)
+    [ "$text" != "$before" ] && break
+  done
+  [ -n "${text:-}" ] || { notify "❌ select some text first"; exit 1; }
+fi
+
+converted=$(printf '%s' "$text" | node "$CLI") || { notify "❌ cant detect language"; exit 1; }
+[ "$converted" = "$text" ] && { notify "❌ nothing to convert"; exit 1; }
+
+printf '%s' "$converted" | wl-copy
+
+if [ "${1:-}" != "--clip" ]; then
+  sleep 0.05
+  ydotool key --delay 30 ctrl+v
+fi
+
+short=$(printf '%s' "$converted" | head -c 60)
+notify "✅ $short"

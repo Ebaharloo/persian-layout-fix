@@ -56,6 +56,25 @@ Chrome does not accept `Ctrl+Alt+P` as a suggested shortcut, so the Chrome build
 `Ctrl+Shift+Q`. Rebind either one at `chrome://extensions/shortcuts` (Chrome) or
 `about:addons` → gear → Manage Extension Shortcuts (Firefox).
 
+## 🖥️ KDE / whole desktop (not just the browser) / کل میزکار
+
+Same conversion, same `mapping.js`, usable in **any** app — Telegram, Kate, LibreOffice, terminal-free fields:
+
+```bash
+./scripts/build-kde.sh --install     # installs the applet + packs dist/persian-layout-fix-1.0.0.plasmoid
+```
+
+Then: right-click panel → **Add Widgets** → *Persian Layout Fix*, and bind a shortcut:
+System Settings → Keyboard → Shortcuts → **Add → Command or Script** → `/home/abraham/bin/plf-fix` → e.g. `Ctrl+Alt+P`.
+
+How it works: select text in any app → click the panel icon or press the shortcut → the script
+`scripts/plf-fix` sends Ctrl+C, converts the clipboard with `scripts/cli.js` (same tables as the
+extension), then sends Ctrl+V, and shows a notification. `plf-fix --clip` converts the clipboard only.
+
+Requires: `node`, `wl-clipboard` (`wl-copy`/`wl-paste`), `ydotool` + running `ydotoold` (uinput access).
+Limits: terminals need `Ctrl+Shift+C/V` (the script sends `Ctrl+C` = SIGINT), and apps that
+reject synthetic key events can only use `--clip` plus manual paste.
+
 ## 🛠 Build / ساخت
 
 ```bash
@@ -116,6 +135,11 @@ node test.js   # 40 assertions over mapping.js
 ```
 
 ## 📝 Changelog
+
+### 1.3.0 (KDE)
+- `scripts/plf-fix` + `scripts/cli.js`: OS-wide conversion for any app on Wayland (clipboard + key injection), reusing `mapping.js`
+- `kde/package`: Plasma 6 applet — panel button that converts the current selection; `scripts/build-kde.sh [--install]` packs and installs the `.plasmoid`
+- extension, CLI and widget share one mapping table
 
 ### 1.2.0
 - Right-click context menu **Convert Persian ⇄ English layout** (`contexts: ["selection", "editable"]`) — works on page text, inputs, textareas and contenteditable fields without knowing the shortcut

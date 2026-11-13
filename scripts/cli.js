@@ -6,7 +6,8 @@ const path = require('path');
 
 const ctx = {};
 require('vm').createContext(ctx);
-require('vm').runInContext(fs.readFileSync(path.join(__dirname, '..', 'mapping.js'), 'utf8'), ctx);
+const mapPath = path.join(__dirname, 'mapping.js');
+require('vm').runInContext(fs.readFileSync(fs.existsSync(mapPath) ? mapPath : path.join(__dirname, '..', 'mapping.js'), 'utf8'), ctx);
 const { enToFa, faToEn, detectDirection } = ctx;
 
 let text = fs.readFileSync(0, 'utf8');

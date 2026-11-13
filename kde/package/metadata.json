@@ -1,0 +1,22 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Authors": [
+      {
+        "Name": "Ebrahim Baharloo",
+        "Email": "fireproof.e@gmail.com"
+      }
+    ],
+    "Category": "Utilities",
+    "Description": "Fix text typed with the wrong Persian/English keyboard layout - select, click, done",
+    "Description[fa]": "متنی که با صفحه‌کلید اشتباه تایپ شده را با یک کلیک به لایه درست برمی‌گرداند",
+    "Icon": "input-keyboard",
+    "Id": "org.ebaharloo.persianlayoutfix",
+    "License": "MIT",
+    "Name": "Persian Layout Fix",
+    "Name[fa]": "اصلاح لایه صفحه‌کلید فارسی",
+    "Version": "1.0.0",
+    "Website": "https://github.com/Ebaharloo/persian-layout-fix"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}
