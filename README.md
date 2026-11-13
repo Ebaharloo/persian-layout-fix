@@ -67,16 +67,26 @@ Same conversion, same `mapping.js`, usable in **any** app — Telegram, Kate, Li
 Then: right-click panel → **Add Widgets** → *Persian Layout Fix*, and bind a shortcut:
 System Settings → Keyboard → Shortcuts → **Add → Command or Script** → `/home/abraham/bin/plf-fix` → e.g. `Ctrl+Alt+P`.
 
-How it works: select text in any app → click the panel icon or press the shortcut →
-`Ctrl+C` grabs the selection (Wayland has no API to read it directly), `scripts/cli.js` converts with
-the same tables as the extension, `wtype` **types the result over the selection**, and your previous
-clipboard is put back — no paste step, no clipboard loss. `plf-fix --clip` converts the clipboard only.
-Every run is logged to `~/.local/state/plf-fix.log` (`ok`/`fail` + text in/out).
+One press, in place — same feel as the add-on: select the words, click the panel icon (or press the
+shortcut), the selection is replaced with the right layout. Nothing for you to copy or paste.
 
-Requires: `node`, `wl-clipboard`, `ydotool` + running `ydotoold` (grabbing the selection), `wtype`
-(typing it back; falls back to `Ctrl+V` when missing).
-Limits: terminals need `Ctrl+Shift+C` (the script sends `Ctrl+C` = SIGINT); apps that ignore
-synthetic keys only work with `--clip` + manual paste.
+How: the extension reads `window.getSelection()` / `input.selectionStart` and writes with
+`execCommand('insertText')`. **The OS has no such API** — the only way to see a selection is `Ctrl+C`
+(the script does that itself, in ~30 ms) and the only way to write is sending keystrokes. So:
+1. `Ctrl+C` grabs the selection (automatic, not your clipboard afterwards)
+2. `scripts/cli.js` converts with the same tables as the extension
+3. it switches the input layout to the one that produces the wanted characters, `ydotool type`s the
+   equivalent keys over the still-selected text, then switches your layout back
+4. your previous clipboard is restored
+
+`wtype` is not used: KWin 6.6 does not implement `zwp_virtual_keyboard_manager_v1`
+(`Compositor does not support the virtual keyboard protocol`), so Unicode cannot be typed directly —
+keys can. `plf-fix --clip` converts the clipboard only. Every run is logged to
+`~/.local/state/plf-fix.log` (`ok`/`fail` + text in/out) so a silent failure is visible.
+
+Requires: `node`, `wl-clipboard`, `ydotool` + running `ydotoold`, `fcitx5-remote`.
+Limits: terminals need `Ctrl+Shift+C` (the script sends `Ctrl+C` = SIGINT); typing over a selection
+fails where the app ignores synthetic keys — then the converted text stays in your clipboard.
 
 ## 🛠 Build / ساخت
 

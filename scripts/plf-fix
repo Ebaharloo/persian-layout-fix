@@ -33,14 +33,34 @@ converted=$(printf '%s' "$text" | node "$CLI") || { notify "❌ cant detect lang
 printf '%s' "$converted" | wl-copy
 
 if [ "${1:-}" != "--clip" ]; then
-  # Type over the selection instead of pasting, then give the user their clipboard back.
-  if command -v wtype >/dev/null; then
+  # Retype by keystrokes over the still-active selection: switch to the layout that
+  # produces the wanted characters, type, switch back. KWin has no virtual-keyboard
+  # protocol (wtype fails), and ydotool can only send keycodes, not Unicode.
+  spec=$(printf '%s' "$text" | node "$CLI" --keys) || spec=""
+  target=${spec%%$'\t'*}
+  keys=${spec#*$'\t'}
+  case "$target" in
+    fa) im=keyboard-ir-winkeys ;;
+    en) im=keyboard-us ;;
+    *)  im="" ;;
+  esac
+
+  if [ -n "$im" ] && command -v ydotool >/dev/null && command -v fcitx5-remote >/dev/null; then
+    prev_im=$(fcitx5-remote -n)
+    fcitx5-remote -s "$im"
+    sleep 0.15                       # let the layout switch apply before keystrokes
+    if ! ydotool type -d 20 -- "$keys"; then
+      fcitx5-remote -s "$prev_im"          # never leave the user on the wrong layout
+      log "fail: typing failed | in=$text | clipboard kept"
+      notify "❌ typing failed - text is in your clipboard"
+      exit 1
+    fi
     sleep 0.05
-    wtype -- "$converted"   # default delay 0; "--" so text is never parsed as a flag
+    fcitx5-remote -s "$prev_im"
     if [ -n "${original:-}" ]; then printf '%s' "$original" | wl-copy; else wl-copy --clear; fi
   else
     sleep 0.05
-    ydotool key --delay 30 ctrl+v   # shortcut: clipboard left holding the converted text when wtype is missing
+    ydotool key --delay 30 ctrl+v   # shortcut: clipboard left holding the converted text when keys path unavailable
   fi
 fi
 
