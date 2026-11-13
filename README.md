@@ -58,6 +58,8 @@ Chrome does not accept `Ctrl+Alt+P` as a suggested shortcut, so the Chrome build
 
 ## 🖥️ KDE / whole desktop (not just the browser) / کل میزکار
 
+**Full docs: [kde/README.md](kde/README.md)** — mechanism, requirements, troubleshooting, log format.
+
 Same conversion, same `mapping.js`, usable in **any** app — Telegram, Kate, LibreOffice, terminal-free fields:
 
 ```bash
