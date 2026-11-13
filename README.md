@@ -65,7 +65,15 @@ Same conversion, same `mapping.js`, usable in **any** app — Telegram, Kate, Li
 ```
 
 Then: right-click panel → **Add Widgets** → *Persian Layout Fix*, and bind a shortcut:
-System Settings → Keyboard → Shortcuts → **Add → Command or Script** → `/home/abraham/bin/plf-fix` → e.g. `Ctrl+Alt+P`.
+System Settings → Keyboard → Shortcuts → **Add → Command or Script** → command
+`/home/abraham/bin/plf-fix` → key `Ctrl+Alt+P`.
+
+Binding it from the shell does not work: writing `[services][plf-fix.desktop]` into
+`kglobalshortcutsrc` plus `X-KDE-GlobalAccel-CommandShortcut=true` in the `.desktop` leaves
+KGlobalAccel without a component (nothing in `allComponents`), so the key is never grabbed —
+the KCM has to create the entry. Also check `fcitx5`'s own hotkeys first: `Ctrl+Alt+P` ships
+bound to **Toggle Preedit** (`~/.config/fcitx5/config` → `[Hotkey/TogglePreedit]`), which
+swallows the key and shows fcitx's "Preedit disabled" popup instead of running the script.
 
 One press, in place — same feel as the add-on: select the words, click the panel icon (or press the
 shortcut), the selection is replaced with the right layout. Nothing for you to copy or paste.
