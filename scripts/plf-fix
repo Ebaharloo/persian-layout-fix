@@ -6,10 +6,15 @@
 set -uo pipefail
 
 CLI="$(dirname "$(readlink -f "$0")")/cli.js"
+LOG="${XDG_STATE_HOME:-$HOME/.local/state}/plf-fix.log"
 notify() { notify-send -a "Persian Layout Fix" "Persian Layout Fix" "$1"; }
+log() {
+  mkdir -p "$(dirname "$LOG")"
+  printf '%s\t%s\n' "$(date '+%F %T')" "$1" >> "$LOG"
+}
 
 if [ "${1:-}" = "--clip" ]; then
-  text=$(wl-paste --no-newline 2>/dev/null) || { notify "❌ clipboard empty"; exit 1; }
+  text=$(wl-paste --no-newline 2>/dev/null) || { notify "❌ clipboard empty"; log "fail: clipboard empty"; exit 1; }
 else
   before=$(wl-paste --no-newline 2>/dev/null || true)
   ydotool key --delay 30 ctrl+c
@@ -18,11 +23,11 @@ else
     text=$(wl-paste --no-newline 2>/dev/null || true)
     [ "$text" != "$before" ] && break
   done
-  [ -n "${text:-}" ] || { notify "❌ select some text first"; exit 1; }
+  [ -n "${text:-}" ] || { notify "❌ select some text first"; log "fail: no selection"; exit 1; }
 fi
 
-converted=$(printf '%s' "$text" | node "$CLI") || { notify "❌ cant detect language"; exit 1; }
-[ "$converted" = "$text" ] && { notify "❌ nothing to convert"; exit 1; }
+converted=$(printf '%s' "$text" | node "$CLI") || { notify "❌ cant detect language"; log "fail: no direction | in=$text"; exit 1; }
+[ "$converted" = "$text" ] && { notify "❌ nothing to convert"; log "fail: unchanged | in=$text"; exit 1; }
 
 printf '%s' "$converted" | wl-copy
 
@@ -32,4 +37,5 @@ if [ "${1:-}" != "--clip" ]; then
 fi
 
 short=$(printf '%s' "$converted" | head -c 60)
+log "ok | in=$text | out=$converted"
 notify "✅ $short"
